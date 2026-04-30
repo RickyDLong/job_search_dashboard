@@ -64,11 +64,13 @@ export interface Database {
           role: string;
           company: string;
           email: string;
+          phone: string;
           linkedin_url: string | null;
           tag: ContactTag;
           last_contact: string | null;
           next_follow_up: string | null;
           notes: string | null;
+          job_id: string | null;
           created_at: string;
           updated_at: string;
         };

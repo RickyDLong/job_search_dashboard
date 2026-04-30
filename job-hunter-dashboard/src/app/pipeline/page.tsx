@@ -5,18 +5,26 @@ import { Search, Plus, GripVertical, ExternalLink, Flag, Loader2 } from "lucide-
 import { getJobs, updateJobStage } from "@/lib/queries";
 import { STAGE_CONFIG, STAGE_ORDER } from "@/lib/constants";
 import type { Job, PipelineStage } from "@/types/database";
+import JobDetailModal from "@/components/JobDetailModal";
 
 function JobCard({
   job,
   onDragStart,
+  onClick,
 }: {
   job: Job;
   onDragStart: (e: React.DragEvent, jobId: string) => void;
+  onClick: () => void;
 }) {
+  const didDrag = useRef(false);
+
   return (
     <div
       draggable
-      onDragStart={(e) => onDragStart(e, job.id)}
+      onDragStart={(e) => { didDrag.current = true; onDragStart(e, job.id); }}
+      onDragEnd={() => { setTimeout(() => { didDrag.current = false; }, 50); }}
+      onMouseDown={() => { didDrag.current = false; }}
+      onClick={() => { if (!didDrag.current) onClick(); }}
       style={{
         background: "var(--bg-elevated)",
         borderRadius: 14,
@@ -123,6 +131,7 @@ export default function PipelinePage() {
   const [draggedJobId, setDraggedJobId] = useState<string | null>(null);
   const [dragOverStage, setDragOverStage] = useState<PipelineStage | null>(null);
   const [movingJobId, setMovingJobId] = useState<string | null>(null);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -352,6 +361,7 @@ export default function PipelinePage() {
                     <JobCard
                       job={job}
                       onDragStart={handleDragStart}
+                      onClick={() => setSelectedJob(job)}
                     />
                   </div>
                 ))}
@@ -398,6 +408,21 @@ export default function PipelinePage() {
           );
         })}
       </div>
+
+      {/* Job Detail Modal */}
+      {selectedJob && (
+        <JobDetailModal
+          job={selectedJob}
+          onClose={() => setSelectedJob(null)}
+          onUpdate={(updatedJob) => {
+            setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
+            setSelectedJob(updatedJob);
+          }}
+          onContactsChanged={() => {
+            // Contacts modified from modal — Contacts page will pull fresh data on visit
+          }}
+        />
+      )}
     </div>
   );
 }

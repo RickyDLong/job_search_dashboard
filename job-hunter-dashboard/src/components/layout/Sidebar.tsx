@@ -18,6 +18,7 @@ import {
   ExternalLink,
   Trello,
   Code2,
+  Rocket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,7 @@ const navItems = [
   { href: "/contacts", icon: Users, label: "Contacts" },
   { href: "/companies", icon: Building2, label: "Companies" },
   { href: "/analytics", icon: BarChart3, label: "Analytics" },
+  { href: "/autopilot", icon: Rocket, label: "Autopilot" },
 ];
 
 const quickLinks = [

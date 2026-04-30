@@ -57,6 +57,17 @@ export async function createJob(job: {
   return data;
 }
 
+export async function updateJob(jobId: string, updates: Record<string, unknown>) {
+  const { data, error } = await supabase
+    .from("jobs")
+    .update(updates)
+    .eq("id", jobId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export async function deleteJob(jobId: string) {
   const { error } = await supabase.from("jobs").delete().eq("id", jobId);
   if (error) throw error;
@@ -112,15 +123,48 @@ export async function createContact(contact: {
   role?: string;
   company?: string;
   email?: string;
+  phone?: string;
   linkedin_url?: string;
   tag?: ContactTag;
   notes?: string;
+  job_id?: string;
 }) {
   const { data, error } = await supabase
     .from("contacts")
     .insert(contact)
     .select()
     .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateContact(contactId: string, updates: Record<string, unknown>) {
+  const { data, error } = await supabase
+    .from("contacts")
+    .update(updates)
+    .eq("id", contactId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function getContactsByJobId(jobId: string) {
+  const { data, error } = await supabase
+    .from("contacts")
+    .select("*")
+    .eq("job_id", jobId)
+    .order("last_contact", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function getContactsByCompany(company: string) {
+  const { data, error } = await supabase
+    .from("contacts")
+    .select("*")
+    .eq("company", company)
+    .order("last_contact", { ascending: false });
   if (error) throw error;
   return data;
 }
@@ -239,5 +283,111 @@ export async function getDashboardStats() {
     jobs,
     resumes,
     contacts,
+  };
+}
+
+// ============================================
+// AUTOPILOT
+// ============================================
+
+export async function getAutopilotConfig() {
+  const { data, error } = await supabase
+    .from("autopilot_config")
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateAutopilotConfig(updates: Record<string, unknown>) {
+  const { data, error } = await supabase
+    .from("autopilot_config")
+    .update(updates)
+    .eq("id", 1)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function getAutopilotRuns(limit = 10) {
+  const { data, error } = await supabase
+    .from("autopilot_runs")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data;
+}
+
+export async function getDiscoveredJobs(runId?: string, limit = 50) {
+  let query = supabase
+    .from("discovered_jobs")
+    .select("*")
+    .order("match_score", { ascending: false })
+    .limit(limit);
+  if (runId) query = query.eq("run_id", runId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data;
+}
+
+export async function getOutreachQueue(status?: string) {
+  let query = supabase
+    .from("outreach_queue")
+    .select("*, discovered_jobs(*), recruiter_contacts(*)")
+    .order("created_at", { ascending: false });
+  if (status) query = query.eq("status", status);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data;
+}
+
+export async function getLearningLog(limit = 20) {
+  const { data, error } = await supabase
+    .from("learning_log")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data;
+}
+
+export async function getAutopilotStats() {
+  const [runsRes, discoveredRes, outreachRes, learningRes] = await Promise.all([
+    supabase.from("autopilot_runs").select("*").order("created_at", { ascending: false }).limit(10),
+    supabase.from("discovered_jobs").select("*"),
+    supabase.from("outreach_queue").select("*"),
+    supabase.from("learning_log").select("*").order("created_at", { ascending: false }).limit(20),
+  ]);
+
+  const runs = runsRes.data || [];
+  const discovered = discoveredRes.data || [];
+  const outreach = outreachRes.data || [];
+  const learning = learningRes.data || [];
+
+  return {
+    totalRuns: runs.length,
+    lastRun: runs[0] || null,
+    totalDiscovered: discovered.length,
+    totalScored: discovered.filter(d => d.status !== "discovered").length,
+    totalApplied: discovered.filter(d => ["applied", "recruiter_found", "emailed", "responded"].includes(d.status)).length,
+    totalEmailed: outreach.filter(o => o.status === "sent").length,
+    totalResponses: outreach.filter(o => o.status === "responded").length,
+    avgMatchScore: discovered.length
+      ? Math.round(discovered.reduce((s, d) => s + (d.match_score || 0), 0) / discovered.length)
+      : 0,
+    statusBreakdown: discovered.reduce((acc, d) => {
+      acc[d.status] = (acc[d.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>),
+    sourceBreakdown: discovered.reduce((acc, d) => {
+      acc[d.source] = (acc[d.source] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>),
+    runs,
+    discovered,
+    outreach,
+    learning,
   };
 }

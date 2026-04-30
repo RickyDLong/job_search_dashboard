@@ -1,21 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Plus, Mail, Linkedin, Calendar, MessageSquare, Loader2 } from "lucide-react";
-import { getContacts } from "@/lib/queries";
+import { Search, Plus, Mail, Phone, Linkedin, Calendar, MessageSquare, Briefcase, Loader2 } from "lucide-react";
+import { getContacts, getJobs } from "@/lib/queries";
 import { TAG_COLORS } from "@/lib/constants";
-import type { Contact } from "@/types/database";
+import type { Contact, Job } from "@/types/database";
 
 export default function ContactsPage() {
   const [search, setSearch] = useState("");
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const data = await getContacts();
-        setContacts(data);
+        const [contactData, jobData] = await Promise.all([getContacts(), getJobs()]);
+        setContacts(contactData);
+        setJobs(jobData);
       } catch (err) {
         console.error("Failed to load contacts:", err);
       } finally {
@@ -24,6 +26,9 @@ export default function ContactsPage() {
     }
     load();
   }, []);
+
+  // Lookup map: job_id → Job
+  const jobMap = new Map(jobs.map(j => [j.id, j]));
 
   if (loading) {
     return (
@@ -171,12 +176,49 @@ export default function ContactsPage() {
                 {contact.company}
               </div>
 
+              {/* Linked Position */}
+              {contact.job_id && jobMap.has(contact.job_id) && (() => {
+                const linkedJob = jobMap.get(contact.job_id)!;
+                return (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      marginBottom: 14,
+                      background: "var(--bg-elevated)",
+                      border: "1px solid var(--card-border)",
+                    }}
+                  >
+                    <Briefcase size={12} style={{ color: "var(--accent)", flexShrink: 0 }} />
+                    <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                      {linkedJob.role}
+                    </span>
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4,
+                      background: "var(--bg-hover)", color: "var(--text-muted)", textTransform: "uppercase",
+                      marginLeft: "auto", flexShrink: 0,
+                    }}>
+                      {linkedJob.stage.replace("_", " ")}
+                    </span>
+                  </div>
+                );
+              })()}
+
               {/* Contact Details */}
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
                 {contact.email && (
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <Mail size={13} style={{ color: "var(--text-muted)" }} />
                     <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{contact.email}</span>
+                  </div>
+                )}
+                {contact.phone && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <Phone size={13} style={{ color: "var(--text-muted)" }} />
+                    <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{contact.phone}</span>
                   </div>
                 )}
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
