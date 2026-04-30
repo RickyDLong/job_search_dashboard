@@ -1,0 +1,164 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
+@import "tailwindcss";
+
+:root {
+  /* ── Base (very dark grey) ──────────────── */
+  --bg-root: #0e0e0e;
+  --bg-surface: #141414;
+  --bg-elevated: #1e1e1e;
+  --bg-hover: #272727;
+  --bg-active: #2e2e2e;
+
+  /* ── Content area (very dark grey) ─────── */
+  --content-bg: #111111;
+  --content-bg-alt: #151515;
+
+  /* ── Cards (grey) ──────────────────────── */
+  --card-bg: #1c1c1c;
+  --card-bg-hover: #232323;
+  --card-bg-inner: #262626;
+  --card-border: rgba(255, 255, 255, 0.05);
+
+  /* ── Light card (warm light grey) ──────── */
+  --card-light: #c8c7c0;
+  --card-light-inner: #bfbeb7;
+  --card-light-border: rgba(0, 0, 0, 0.06);
+  --card-light-text: #1a1a1a;
+  --card-light-text-secondary: #4a4a46;
+  --card-light-text-muted: #8a8a82;
+
+  /* ── Text ──────────────────────────────── */
+  --text-primary: #e8e8e8;
+  --text-secondary: #888888;
+  --text-muted: #555555;
+  --text-inverse: #111111;
+
+  /* ── Accent (mint green) ───────────────── */
+  --accent: #00d4aa;
+  --accent-hover: #00e8bc;
+  --accent-muted: rgba(0, 212, 170, 0.08);
+  --accent-border: rgba(0, 212, 170, 0.15);
+  --accent-glow: rgba(0, 212, 170, 0.06);
+
+  /* ── Status colors ─────────────────────── */
+  --status-active: #00d4aa;
+  --status-pending: #f0a500;
+  --status-interview: #6366f1;
+  --status-offer: #8b5cf6;
+  --status-rejected: #ef4444;
+  --status-saved: #3b82f6;
+  --status-new: #06b6d4;
+
+  /* ── Borders ───────────────────────────── */
+  --border-default: rgba(255, 255, 255, 0.04);
+  --border-hover: rgba(255, 255, 255, 0.08);
+  --border-active: #00d4aa;
+
+  /* ── Shadows ───────────────────────────── */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.25);
+  --shadow-glow: 0 0 40px rgba(0, 212, 170, 0.04);
+
+  /* ── Typography ────────────────────────── */
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-body: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ── Layout ────────────────────────────── */
+  --sidebar-width: 240px;
+  --sidebar-collapsed: 72px;
+  --header-height: 64px;
+  --card-radius: 16px;
+  --card-padding: 24px;
+  --grid-gap: 10px;
+
+  /* ── Motion ────────────────────────────── */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@theme inline {
+  --color-background: var(--bg-root);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { color-scheme: dark; }
+
+body {
+  background: var(--bg-root);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.1); }
+
+::selection { background: rgba(0, 212, 170, 0.25); color: var(--text-primary); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.animate-fade-in { animation: fadeIn 300ms ease-out; }
+.animate-slide-in { animation: slideInLeft var(--transition-base) ease-out; }
+.animate-pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+
+.dark-card {
+  background: var(--card-bg);
+  border-radius: var(--card-radius);
+  border: 1px solid var(--card-border);
+  transition: border-color var(--transition-base);
+}
+.dark-card:hover { border-color: var(--border-hover); }
+
+.metric-number {
+  font-family: var(--font-display);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #ffffff;
+}
+
+.content-area {
+  background: var(--content-bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+.pill-positive { background: rgba(0, 212, 170, 0.1); color: #00d4aa; }
+.pill-negative { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+.pill-neutral { background: rgba(99, 102, 241, 0.1); color: #818cf8; }
+
+.status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+
+/* ── Inverted (light) cards ───────────── */
+.card-light {
+  background: var(--card-light) !important;
+  border-color: var(--card-light-border) !important;
+  color: var(--card-light-text);
+}
+
+.quick-link { transition: all var(--transition-fast); }
+.quick-link:hover { background: rgba(255, 255, 255, 0.04); transform: translateY(-1px); }
