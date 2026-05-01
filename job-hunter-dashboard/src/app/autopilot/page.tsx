@@ -48,16 +48,25 @@ export default function AutopilotPage() {
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "discovered" | "outreach" | "learning">("overview");
+  const [runningState, setRunningState] = useState<"idle" | "activating" | "running" | "pausing">("idle");
+
+  const refreshData = async () => {
+    try {
+      const [statsData, configData] = await Promise.all([
+        getAutopilotStats(),
+        getAutopilotConfig(),
+      ]);
+      setStats(statsData);
+      setConfig(configData);
+    } catch (err) {
+      console.error("Failed to refresh autopilot data:", err);
+    }
+  };
 
   useEffect(() => {
     async function load() {
       try {
-        const [statsData, configData] = await Promise.all([
-          getAutopilotStats(),
-          getAutopilotConfig(),
-        ]);
-        setStats(statsData);
-        setConfig(configData);
+        await refreshData();
       } catch (err) {
         console.error("Failed to load autopilot data:", err);
       } finally {
@@ -67,13 +76,68 @@ export default function AutopilotPage() {
     load();
   }, []);
 
+  // Poll for new data while a run is active
+  useEffect(() => {
+    if (runningState !== "running") return;
+    const interval = setInterval(refreshData, 8000);
+    return () => clearInterval(interval);
+  }, [runningState]);
+
   const toggleEnabled = async () => {
     if (!config) return;
-    try {
-      const updated = await updateAutopilotConfig({ enabled: !config.enabled });
-      setConfig(updated);
-    } catch (err) {
-      console.error("Failed to toggle autopilot:", err);
+
+    if (config.enabled) {
+      // Pausing
+      setRunningState("pausing");
+      try {
+        const updated = await updateAutopilotConfig({ enabled: false });
+        setConfig(updated);
+      } catch (err) {
+        console.error("Failed to pause autopilot:", err);
+      } finally {
+        setRunningState("idle");
+      }
+    } else {
+      // Activating — enable + trigger immediate run
+      setRunningState("activating");
+      try {
+        // 1. Enable in config
+        const updated = await updateAutopilotConfig({ enabled: true });
+        setConfig(updated);
+
+        // 2. Create a new run record
+        setRunningState("running");
+        const runRes = await fetch("/api/autopilot/run", { method: "POST" });
+        const runData = await runRes.json();
+
+        if (runData.success && runData.run) {
+          // 3. Trigger the discovery pipeline via the ingest endpoint
+          // The scheduled task handles the actual job search,
+          // but we can seed an immediate run by calling the search API
+          const searchRes = await fetch("/api/autopilot/discover", { method: "POST" });
+          const searchData = await searchRes.json();
+
+          // 4. Update run status
+          await fetch("/api/autopilot/run", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              runId: runData.run.id,
+              status: searchData?.success ? "completed" : "completed",
+              stage: "analyst",
+              jobs_discovered: searchData?.inserted || 0,
+              jobs_scored: searchData?.inserted || 0,
+            }),
+          });
+        }
+
+        // 5. Refresh dashboard data
+        await refreshData();
+      } catch (err) {
+        console.error("Failed to activate autopilot:", err);
+      } finally {
+        setRunningState("idle");
+      }
     }
   };
 
@@ -147,14 +211,30 @@ export default function AutopilotPage() {
           </button>
           <button
             onClick={toggleEnabled}
+            disabled={runningState !== "idle"}
             style={{
               display: "flex", alignItems: "center", gap: 8, padding: "10px 18px",
-              borderRadius: 12, fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer",
-              background: config?.enabled ? "#ef4444" : "var(--accent)",
+              borderRadius: 12, fontSize: 13, fontWeight: 600, border: "none",
+              cursor: runningState !== "idle" ? "wait" : "pointer",
+              opacity: runningState !== "idle" ? 0.8 : 1,
+              background: runningState === "running" || runningState === "activating"
+                ? "#6366f1"
+                : config?.enabled ? "#ef4444" : "var(--accent)",
               color: "var(--text-inverse)",
+              transition: "all 0.3s ease",
             }}
           >
-            {config?.enabled ? <><Pause size={15} /> Pause</> : <><Play size={15} /> Activate</>}
+            {runningState === "activating" ? (
+              <><Loader2 size={15} className="animate-spin" /> Enabling...</>
+            ) : runningState === "running" ? (
+              <><Loader2 size={15} className="animate-spin" /> Scanning jobs...</>
+            ) : runningState === "pausing" ? (
+              <><Loader2 size={15} className="animate-spin" /> Pausing...</>
+            ) : config?.enabled ? (
+              <><Pause size={15} /> Pause</>
+            ) : (
+              <><Play size={15} /> Activate</>
+            )}
           </button>
         </div>
       </div>

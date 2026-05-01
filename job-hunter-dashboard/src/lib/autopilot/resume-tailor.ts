@@ -77,14 +77,14 @@ Jan 2025 - March 2026
 - Participated in code reviews, sprint planning, and cross-team architecture discussions
 - Improved page load performance and accessibility compliance across key user flows
 
-Data Analyst | TEC | Remote
-May 2024 - Jan 2025
+Data Analyst | Telephone Electronics Corporation | Monroe, LA
+Nov 2024 - Jan 2025
 - Analyzed and visualized complex datasets to drive business decisions
 - Built interactive dashboards and reporting tools
 - Streamlined data collection and processing workflows
 
-Software Development Instructor | Unitech Training Academy
-Aug 2023 - May 2024
+Software Development Instructor | Unitech Training Academy | Lafayette, LA
+Nov 2023 - Mar 2024
 - Designed and delivered curriculum for full-stack web development bootcamp
 - Mentored 50+ students through project-based learning in JavaScript, React, and Node.js
 - Created assessment frameworks and hands-on coding challenges

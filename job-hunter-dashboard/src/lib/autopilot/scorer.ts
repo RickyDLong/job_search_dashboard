@@ -17,8 +17,27 @@ export interface ScoringResult {
   reasoning: string;
 }
 
+// Monroe/West Monroe, LA metro area — cities within ~1hr drive
+const LOCAL_AREA_CITIES = [
+  "monroe", "west monroe", "ruston", "bastrop", "shreveport",
+  "bossier city", "natchitoches", "alexandria", "jonesboro",
+  "winnsboro", "tallulah", "farmerville", "rayville",
+];
+
+/**
+ * Check if a location is acceptable:
+ * - Remote/hybrid positions always pass
+ * - On-site positions only pass if within Monroe/West Monroe LA area
+ */
+export function isLocationAcceptable(location: string): boolean {
+  const loc = (location || "").toLowerCase();
+  if (loc.includes("remote") || loc.includes("hybrid") || loc.includes("anywhere")) return true;
+  return LOCAL_AREA_CITIES.some((city) => loc.includes(city)) || loc.includes(", la");
+}
+
 const DEFAULT_PROFILE: ScoringProfile = {
   targetRoles: [
+    // ── Frontend / Web ──
     "Frontend Engineer",
     "Software Engineer",
     "React Developer",
@@ -29,8 +48,42 @@ const DEFAULT_PROFILE: ScoringProfile = {
     "Staff Frontend Engineer",
     "Senior Frontend Engineer",
     "Senior Software Engineer",
+    "Fullstack Developer",
+    "Full-Stack Engineer",
+    "Application Engineer",
+    "Front End Engineer",
+    "Front-End Developer",
+    // ── UI/UX ──
+    "UI/UX Designer",
+    "UX Designer",
+    "UI Designer",
+    "UX Engineer",
+    "Product Designer",
+    "Design Engineer",
+    "UI/UX Engineer",
+    // ── AI / ML / Prompt Engineering ──
+    "AI Engineer",
+    "Machine Learning Engineer",
+    "Prompt Engineer",
+    "AI Developer",
+    "AI/ML Engineer",
+    "AI Solutions Engineer",
+    "Applied AI Engineer",
+    // ── Business Analyst ──
+    "Business Analyst",
+    "Business Systems Analyst",
+    "Technical Business Analyst",
+    "Product Analyst",
+    "Data Analyst",
+    // ── Vibe Coding / AI-Assisted Dev ──
+    "AI-Assisted Developer",
+    "Vibe Coder",
+    "Low-Code Developer",
+    "No-Code Developer",
+    "Automation Engineer",
   ],
   targetKeywords: [
+    // Core frontend
     "React",
     "TypeScript",
     "JavaScript",
@@ -46,6 +99,31 @@ const DEFAULT_PROFILE: ScoringProfile = {
     "CI/CD",
     "Jest",
     "Agile",
+    // UI/UX
+    "Figma",
+    "Design Systems",
+    "User Research",
+    "Prototyping",
+    "Accessibility",
+    "Responsive Design",
+    // AI / ML
+    "AI",
+    "Machine Learning",
+    "LLM",
+    "Prompt Engineering",
+    "Claude",
+    "GPT",
+    "OpenAI",
+    "Anthropic",
+    "Python",
+    "AI Agents",
+    // Business Analysis
+    "Jira",
+    "Requirements",
+    "Stakeholder",
+    "SQL",
+    "Data Analysis",
+    "Process Improvement",
   ],
   excludedCompanies: [],
   minSalary: 90000,
@@ -91,7 +169,14 @@ export function scoreJob(
     reasons.push(`Role match: "${roleMatch}"`);
   } else {
     // Partial role match
-    const roleTerms = ["frontend", "front-end", "react", "software engineer", "web developer", "ui engineer", "full stack"];
+    const roleTerms = [
+      "frontend", "front-end", "front end", "react", "software engineer",
+      "web developer", "ui engineer", "full stack", "fullstack",
+      "ux", "ui/ux", "designer", "product designer", "design engineer",
+      "ai engineer", "machine learning", "ml engineer", "prompt",
+      "business analyst", "data analyst", "analyst",
+      "automation", "low-code", "no-code", "vibe",
+    ];
     const partialMatch = roleTerms.find((t) => titleLower.includes(t));
     if (partialMatch) {
       score += 15;
@@ -118,14 +203,27 @@ export function scoreJob(
     `${keywordMatches.length}/${profile.targetKeywords.length} keywords matched (+${keywordScore})`
   );
 
-  // ── Remote preference (0-15 points) ──
+  // ── Location filter (0-15 points) ──
+  // Remote positions get full points; Monroe/West Monroe area gets partial; everything else is rejected
   const locationLower = (location || "").toLowerCase();
+  if (!isLocationAcceptable(locationLower)) {
+    return {
+      score: 0,
+      keywordMatches,
+      missingKeywords,
+      reasoning: `Location not acceptable: ${location} (must be Remote or Monroe/West Monroe LA area)`,
+    };
+  }
+
   if (locationLower.includes("remote") || fullText.includes("remote")) {
     score += 15;
     reasons.push("Remote position (+15)");
   } else if (locationLower.includes("hybrid")) {
-    score += 5;
-    reasons.push("Hybrid position (+5)");
+    score += 10;
+    reasons.push("Hybrid position - local area (+10)");
+  } else if (LOCAL_AREA_CITIES.some((c) => locationLower.includes(c))) {
+    score += 10;
+    reasons.push("Local Monroe/West Monroe area (+10)");
   }
 
   // ── Salary alignment (0-15 points) ──

@@ -353,6 +353,59 @@ export async function getLearningLog(limit = 20) {
   return data;
 }
 
+export async function updateDiscoveredJobStatus(
+  jobId: string,
+  status: string,
+  skipReason?: string
+) {
+  const updates: Record<string, unknown> = { status, updated_at: new Date().toISOString() };
+  if (skipReason) updates.skip_reason = skipReason;
+  const { data, error } = await supabase
+    .from("discovered_jobs")
+    .update(updates)
+    .eq("id", jobId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function promoteToMainPipeline(discoveredJobId: string) {
+  // Fetch the discovered job
+  const { data: discovered, error: fetchError } = await supabase
+    .from("discovered_jobs")
+    .select("*")
+    .eq("id", discoveredJobId)
+    .single();
+  if (fetchError || !discovered) throw fetchError || new Error("Job not found");
+
+  // Create a job in the main pipeline
+  const { data: pipelineJob, error: insertError } = await supabase
+    .from("jobs")
+    .insert({
+      company: discovered.company,
+      role: discovered.title,
+      salary: discovered.salary_range,
+      stage: "applied",
+      source: `autopilot:${discovered.source}`,
+      url: discovered.url,
+      match_score: discovered.match_score,
+      tags: discovered.keyword_matches || [],
+      notes: `Auto-discovered via ${discovered.source}. Score: ${discovered.match_score}/100`,
+    })
+    .select()
+    .single();
+  if (insertError) throw insertError;
+
+  // Link back
+  await supabase
+    .from("discovered_jobs")
+    .update({ pipeline_job_id: pipelineJob.id, status: "applied" })
+    .eq("id", discoveredJobId);
+
+  return pipelineJob;
+}
+
 export async function getAutopilotStats() {
   const [runsRes, discoveredRes, outreachRes, learningRes] = await Promise.all([
     supabase.from("autopilot_runs").select("*").order("created_at", { ascending: false }).limit(10),
