@@ -1,22 +1,36 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { z } from "zod";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { validateApiAuth } from "@/lib/api-auth";
+
+const RunUpdateSchema = z.object({
+  runId: z.string().uuid(),
+  status: z.enum(["running", "completed", "failed"]).optional(),
+  stage: z.enum(["scout", "scorer", "tailor", "outreach", "analyst"]).optional(),
+  jobs_discovered: z.number().optional(),
+  jobs_scored: z.number().optional(),
+  resumes_tailored: z.number().optional(),
+  applications_sent: z.number().optional(),
+  emails_drafted: z.number().optional(),
+  emails_sent: z.number().optional(),
+});
 
 /**
- * POST /api/autopilot/run
- * Creates a new autopilot run record and returns the run ID
+ * POST /api/autopilot/run -- Create a new run
  */
-export async function POST() {
+export async function POST(request: Request) {
+  const authError = validateApiAuth(request);
+  if (authError) return authError;
+
   try {
-    // Get current config
-    const { data: config, error: configError } = await supabase
+    const { data: config, error: configError } = await supabaseAdmin
       .from("autopilot_config")
       .select("*")
       .single();
 
     if (configError) throw configError;
 
-    // Create a new run
-    const { data: run, error: runError } = await supabase
+    const { data: run, error: runError } = await supabaseAdmin
       .from("autopilot_runs")
       .insert({
         status: "running",
@@ -32,7 +46,6 @@ export async function POST() {
       .single();
 
     if (runError) throw runError;
-
     return NextResponse.json({ success: true, run });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -41,32 +54,31 @@ export async function POST() {
 }
 
 /**
- * PATCH /api/autopilot/run
- * Updates a run's status and stage
+ * PATCH /api/autopilot/run -- Update a run
  */
 export async function PATCH(request: Request) {
-  try {
-    const { runId, status, stage, ...counters } = await request.json();
+  const authError = validateApiAuth(request);
+  if (authError) return authError;
 
-    if (!runId) {
-      return NextResponse.json({ error: "runId required" }, { status: 400 });
+  try {
+    const body = await request.json();
+    const parsed = RunUpdateSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid run update", details: parsed.error.flatten() },
+        { status: 400 }
+      );
     }
 
-    const updates: Record<string, unknown> = {};
-    if (status) updates.status = status;
-    if (stage) updates.stage = stage;
-    if (status === "completed" || status === "failed") {
+    const { runId, ...fields } = parsed.data;
+    const updates: Record<string, unknown> = { ...fields };
+
+    if (fields.status === "completed" || fields.status === "failed") {
       updates.completed_at = new Date().toISOString();
     }
 
-    // Merge any counter updates
-    for (const [key, value] of Object.entries(counters)) {
-      if (["jobs_discovered", "jobs_scored", "resumes_tailored", "applications_sent", "emails_drafted", "emails_sent"].includes(key)) {
-        updates[key] = value;
-      }
-    }
-
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("autopilot_runs")
       .update(updates)
       .eq("id", runId)
@@ -74,7 +86,6 @@ export async function PATCH(request: Request) {
       .single();
 
     if (error) throw error;
-
     return NextResponse.json({ success: true, run: data });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);

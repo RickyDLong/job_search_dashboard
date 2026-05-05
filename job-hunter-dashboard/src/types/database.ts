@@ -10,6 +10,7 @@ export type PipelineStage =
   | "rejected";
 
 export type RemotePolicy = "fully_remote" | "hybrid" | "onsite";
+export type SourceType = "job_board" | "freelance" | "direct" | "referral";
 export type ContactTag = "warm" | "cold" | "referral" | "internal";
 export type ResumeType = "master" | "tailored";
 export type ActivityType = "applied" | "response" | "interview" | "offer" | "rejected" | "follow_up" | "note";
@@ -33,6 +34,9 @@ export interface Database {
           red_flags: string[];
           notes: string | null;
           applied_date: string | null;
+          needs_attention: boolean;
+          attention_reason: string | null;
+          source_type: SourceType;
           created_at: string;
           updated_at: string;
         };

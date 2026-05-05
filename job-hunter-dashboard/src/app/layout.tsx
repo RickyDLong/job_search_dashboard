@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk } from "next/font/google";
+import { Space_Grotesk, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/layout/Sidebar";
 
@@ -7,6 +7,13 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
+});
+
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -20,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} h-full antialiased`}>
+    <html lang="en" className={`${spaceGrotesk.variable} ${instrumentSerif.variable} h-full antialiased`}>
       <body className="min-h-full flex" style={{ background: "var(--bg-root)" }}>
         <Sidebar />
         <main

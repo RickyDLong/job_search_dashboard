@@ -1,26 +1,16 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { validateApiAuth } from "@/lib/api-auth";
 
 /**
  * POST /api/autopilot/discover
- *
- * Triggers a discovery cycle. Since the actual job search MCP tools
- * run in the Cowork environment (not the Next.js runtime), this endpoint:
- *
- * 1. Creates a run record to track the cycle
- * 2. Checks for any pending discovered jobs that need re-scoring
- * 3. Returns status for the dashboard to poll
- *
- * The scheduled Cowork task handles the actual Indeed searches and
- * calls /api/autopilot/ingest to insert results.
- *
- * When called from the Activate button, it signals that the system
- * is ready for the next scheduled run to execute.
  */
-export async function POST() {
+export async function POST(request: Request) {
+  const authError = validateApiAuth(request);
+  if (authError) return authError;
+
   try {
-    // Check if autopilot is enabled
-    const { data: config } = await supabase
+    const { data: config } = await supabaseAdmin
       .from("autopilot_config")
       .select("enabled")
       .single();
@@ -32,8 +22,7 @@ export async function POST() {
       );
     }
 
-    // Create a new run record
-    const { data: run, error: runError } = await supabase
+    const { data: run, error: runError } = await supabaseAdmin
       .from("autopilot_runs")
       .insert({
         status: "running",
@@ -45,8 +34,7 @@ export async function POST() {
 
     if (runError) throw runError;
 
-    // Get current stats for the response
-    const { data: discovered } = await supabase
+    const { data: discovered } = await supabaseAdmin
       .from("discovered_jobs")
       .select("id, status, match_score")
       .order("created_at", { ascending: false });
@@ -54,8 +42,7 @@ export async function POST() {
     const totalDiscovered = discovered?.length || 0;
     const highScoreCount = discovered?.filter((d) => d.match_score >= 60).length || 0;
 
-    // Mark run as completed (the actual search happens via scheduled task)
-    await supabase
+    await supabaseAdmin
       .from("autopilot_runs")
       .update({
         status: "completed",
@@ -66,8 +53,7 @@ export async function POST() {
       })
       .eq("id", run.id);
 
-    // Log the activation event
-    await supabase.from("learning_log").insert({
+    await supabaseAdmin.from("learning_log").insert({
       category: "source_quality",
       signal: "Autopilot activated from dashboard",
       data: {
@@ -80,13 +66,10 @@ export async function POST() {
 
     return NextResponse.json({
       success: true,
-      inserted: 0, // No new jobs from this call — scheduled task handles that
+      inserted: 0,
       runId: run.id,
-      stats: {
-        totalDiscovered,
-        highScoreCount,
-      },
-      message: "Autopilot activated. Discovery runs at 8am and 8pm daily. Existing jobs are available on the Discovered tab.",
+      stats: { totalDiscovered, highScoreCount },
+      message: "Autopilot activated. Discovery runs at 8am and 8pm daily.",
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);

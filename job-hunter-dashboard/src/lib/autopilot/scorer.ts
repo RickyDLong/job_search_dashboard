@@ -272,6 +272,8 @@ export function scoreJob(
 function parseSalary(salaryStr: string): number | null {
   if (!salaryStr || salaryStr === "N/A") return null;
 
+  const isHourly = /\/hr|per\s*hour|hourly/i.test(salaryStr);
+
   // Extract numbers from salary string
   const numbers = salaryStr.match(/[\d,]+/g);
   if (!numbers || numbers.length === 0) return null;
@@ -279,10 +281,19 @@ function parseSalary(salaryStr: string): number | null {
   const parsed = numbers.map((n) => parseInt(n.replace(/,/g, ""), 10));
 
   // If range, take the midpoint
+  let result: number;
   if (parsed.length >= 2) {
-    return Math.round((parsed[0] + parsed[1]) / 2);
+    result = Math.round((parsed[0] + parsed[1]) / 2);
+  } else {
+    result = parsed[0];
   }
-  return parsed[0];
+
+  // Convert hourly to annual (2080 hours/year)
+  if (isHourly && result < 1000) {
+    result = result * 2080;
+  }
+
+  return result;
 }
 
 export { DEFAULT_PROFILE };

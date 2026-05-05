@@ -36,7 +36,7 @@ export default function AnalyticsPage() {
   const { jobs } = stats;
 
   // Stage distribution
-  const stageDistribution = Object.entries(stats.stageDistribution).map(([stage, count]) => ({
+  const stageDistribution = (Object.entries(stats.stageDistribution) as [string, number][]).map(([stage, count]) => ({
     name: STAGE_CONFIG[stage as PipelineStage]?.label || stage,
     value: count,
     color: STAGE_CONFIG[stage as PipelineStage]?.color || "#666",

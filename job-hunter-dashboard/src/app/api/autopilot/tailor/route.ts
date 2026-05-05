@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { z } from "zod";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { validateApiAuth } from "@/lib/api-auth";
 import { tailorResume } from "@/lib/autopilot/resume-tailor";
 
 /**
@@ -10,17 +12,18 @@ import { tailorResume } from "@/lib/autopilot/resume-tailor";
  */
 export async function POST(request: Request) {
   try {
-    const { discoveredJobId } = await request.json();
-
-    if (!discoveredJobId) {
-      return NextResponse.json(
-        { error: "discoveredJobId required" },
-        { status: 400 }
-      );
+    const authError = validateApiAuth(request);
+    if (authError) return authError;
+    const body = await request.json();
+    const TailorSchema = z.object({ discoveredJobId: z.string().uuid() });
+    const parsed = TailorSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation failed", details: parsed.error.flatten() }, { status: 400 });
     }
+    const { discoveredJobId } = parsed.data;
 
     // Fetch the discovered job
-    const { data: job, error: jobError } = await supabase
+    const { data: job, error: jobError } = await supabaseAdmin
       .from("discovered_jobs")
       .select("*")
       .eq("id", discoveredJobId)
@@ -34,7 +37,7 @@ export async function POST(request: Request) {
     }
 
     // Fetch the master resume ID from config
-    const { data: config } = await supabase
+    const { data: config } = await supabaseAdmin
       .from("autopilot_config")
       .select("master_resume_id")
       .single();
@@ -50,7 +53,7 @@ export async function POST(request: Request) {
     });
 
     // Check if a tailored resume already exists for this job
-    const { data: existing } = await supabase
+    const { data: existing } = await supabaseAdmin
       .from("tailored_resumes")
       .select("id")
       .eq("discovered_job_id", discoveredJobId)
@@ -60,7 +63,7 @@ export async function POST(request: Request) {
 
     if (existing) {
       // Update existing
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("tailored_resumes")
         .update({
           summary_rewrite: tailored.summaryRewrite,
@@ -76,7 +79,7 @@ export async function POST(request: Request) {
       result = data;
     } else {
       // Insert new
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("tailored_resumes")
         .insert({
           discovered_job_id: discoveredJobId,
@@ -94,7 +97,7 @@ export async function POST(request: Request) {
     }
 
     // Update discovered job status
-    await supabase
+    await supabaseAdmin
       .from("discovered_jobs")
       .update({ status: "resume_tailored" })
       .eq("id", discoveredJobId);
@@ -117,14 +120,13 @@ export async function POST(request: Request) {
  */
 export async function PUT(request: Request) {
   try {
-    const { jobIds } = await request.json();
-
-    if (!jobIds || !Array.isArray(jobIds)) {
-      return NextResponse.json(
-        { error: "jobIds array required" },
-        { status: 400 }
-      );
+    const body = await request.json();
+    const BatchSchema = z.object({ jobIds: z.array(z.string().uuid()).min(1) });
+    const parsed = BatchSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation failed", details: parsed.error.flatten() }, { status: 400 });
     }
+    const { jobIds } = parsed.data;
 
     const results = [];
     for (const id of jobIds) {

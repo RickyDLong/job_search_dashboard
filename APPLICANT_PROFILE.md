@@ -3,12 +3,27 @@
 **IMPORTANT: This file is the ONLY source of truth for job applications. Never fabricate, guess, or pull from external sources without explicit permission. If information is missing, ASK Ricky.**
 
 ## Contact Information
-- **Name:** Ricky Long
-- **Location:** West Monroe, LA
-- **Address:** 107 Ashford Drive, #513, West Monroe, LA 71291
+- **Full Name:** Ricky Long
+- **First Name:** Ricky
+- **Last Name:** Long
+- **Location / City:** West Monroe, LA
+- **Full Address:** 107 Ashford Drive, #513, West Monroe, LA 71291
 - **Phone:** 318-237-1540
 - **Email:** rickydlong@proton.me
-- **LinkedIn:** linkedin.com/in/rickydlong
+- **LinkedIn:** http://linkedin.com/in/rickydlong
+- **GitHub:** https://github.com/RickyDLong
+- **Portfolio:** https://rickydlong.dev
+
+## Form Quick-Reference (for ATS autofill)
+- **Current Company:** Dexian
+- **Current Title:** Software Engineer
+- **Work Authorization:** Authorized to work in the US (no sponsorship needed)
+- **Visa Sponsorship Required:** No
+- **Gender:** Male
+- **Race/Ethnicity:** White
+- **Hispanic/Latino:** No
+- **Veteran Status:** I am not a protected veteran
+- **Disability:** No, I do not have a disability and have not had one in the past
 
 ## Professional Summary
 Frontend Software Engineer building production web applications with React, TypeScript, and GraphQL. Currently delivering features and resolving defects on Pizza Hut's enterprise call center platform within a cross-functional agile team. Seeking frontend engineering roles focused on React/TypeScript in fast-paced environments.

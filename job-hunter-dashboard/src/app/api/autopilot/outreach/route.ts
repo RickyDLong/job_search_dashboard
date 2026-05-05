@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { z } from "zod";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { validateApiAuth } from "@/lib/api-auth";
 import { draftColdOutreach, draftFollowUp } from "@/lib/autopilot/email-drafter";
 
 /**
@@ -8,14 +10,22 @@ import { draftColdOutreach, draftFollowUp } from "@/lib/autopilot/email-drafter"
  */
 export async function POST(request: Request) {
   try {
-    const { discoveredJobId, recruiterContactId, type = "cold" } = await request.json();
-
-    if (!discoveredJobId) {
-      return NextResponse.json({ error: "discoveredJobId required" }, { status: 400 });
+    const authError = validateApiAuth(request);
+    if (authError) return authError;
+    const body = await request.json();
+    const OutreachSchema = z.object({
+      discoveredJobId: z.string().uuid(),
+      recruiterContactId: z.string().uuid().nullable().optional(),
+      type: z.enum(["cold", "followup"]).default("cold"),
+    });
+    const parsed = OutreachSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation failed", details: parsed.error.flatten() }, { status: 400 });
     }
+    const { discoveredJobId, recruiterContactId, type } = parsed.data;
 
     // Fetch the discovered job
-    const { data: job, error: jobError } = await supabase
+    const { data: job, error: jobError } = await supabaseAdmin
       .from("discovered_jobs")
       .select("*")
       .eq("id", discoveredJobId)
@@ -29,7 +39,7 @@ export async function POST(request: Request) {
     let recruiter = { name: "Hiring Manager", title: "", company: job.company };
 
     if (recruiterContactId) {
-      const { data: contact } = await supabase
+      const { data: contact } = await supabaseAdmin
         .from("recruiter_contacts")
         .select("*")
         .eq("id", recruiterContactId)
@@ -56,7 +66,7 @@ export async function POST(request: Request) {
     let draft;
     if (type === "followup") {
       // Check for existing outreach to calculate days since initial
-      const { data: existingOutreach } = await supabase
+      const { data: existingOutreach } = await supabaseAdmin
         .from("outreach_queue")
         .select("created_at")
         .eq("discovered_job_id", discoveredJobId)
@@ -77,7 +87,7 @@ export async function POST(request: Request) {
     }
 
     // Insert into outreach queue
-    const { data: outreach, error: outreachError } = await supabase
+    const { data: outreach, error: outreachError } = await supabaseAdmin
       .from("outreach_queue")
       .insert({
         discovered_job_id: discoveredJobId,
@@ -112,7 +122,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
 
-    let query = supabase
+    let query = supabaseAdmin
       .from("outreach_queue")
       .select("*, discovered_jobs(title, company, url), recruiter_contacts(name, email)")
       .order("created_at", { ascending: false });
@@ -135,11 +145,20 @@ export async function GET(request: Request) {
  */
 export async function PATCH(request: Request) {
   try {
-    const { outreachId, status, ...updates } = await request.json();
-
-    if (!outreachId) {
-      return NextResponse.json({ error: "outreachId required" }, { status: 400 });
+    const body = await request.json();
+    const PatchSchema = z.object({
+      outreachId: z.string().uuid(),
+      status: z.enum(["drafted", "approved", "sent", "responded", "bounced", "failed"]),
+      subject: z.string().optional(),
+      body: z.string().optional(),
+      send_via: z.enum(["gmail", "proton"]).optional(),
+      error_message: z.string().optional(),
+    });
+    const parsed = PatchSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation failed", details: parsed.error.flatten() }, { status: 400 });
     }
+    const { outreachId, status, ...updates } = parsed.data;
 
     const updateData: Record<string, unknown> = { status };
     if (status === "sent") updateData.sent_at = new Date().toISOString();
@@ -152,7 +171,7 @@ export async function PATCH(request: Request) {
       }
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("outreach_queue")
       .update(updateData)
       .eq("id", outreachId)

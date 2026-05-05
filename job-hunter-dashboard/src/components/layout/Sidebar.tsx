@@ -186,7 +186,7 @@ export default function Sidebar() {
               </span>
             </div>
             <p className="text-[10px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-              3 positions found today
+              Agent active
             </p>
           </div>
         </div>

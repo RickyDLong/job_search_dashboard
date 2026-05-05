@@ -78,9 +78,15 @@ export default function DashboardPage() {
     offer: "#8b5cf6", rejected: "#ef4444", follow_up: "#f0a500", note: "#06b6d4",
   };
 
-  // Weekly goal tracking (hardcoded target for now)
+  // Weekly goal tracking -- filters by actual applied_date this week
   const weeklyTarget = 10;
-  const thisWeekApps = stats.totalApplications; // simplified
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay());
+  weekStart.setHours(0, 0, 0, 0);
+  const thisWeekApps = jobs.filter((j: Job) =>
+    j.applied_date && new Date(j.applied_date) >= weekStart
+  ).length;
   const goalProgress = Math.min((thisWeekApps / weeklyTarget) * 100, 100);
 
   // Styles

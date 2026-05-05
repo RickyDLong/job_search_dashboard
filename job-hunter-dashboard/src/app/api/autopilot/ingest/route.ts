@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { z } from "zod";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { validateApiAuth } from "@/lib/api-auth";
 
 /**
  * POST /api/autopilot/ingest
@@ -8,11 +10,38 @@ import { supabase } from "@/lib/supabase";
  */
 export async function POST(request: Request) {
   try {
-    const { runId, jobs } = await request.json();
+    const authError = validateApiAuth(request);
+    if (authError) return authError;
+    const body = await request.json();
 
-    if (!jobs || !Array.isArray(jobs) || jobs.length === 0) {
-      return NextResponse.json({ error: "No jobs provided" }, { status: 400 });
+    const IngestJobSchema = z.object({
+      source: z.string().default("indeed"),
+      external_id: z.string().nullable().optional(),
+      title: z.string().min(1),
+      company: z.string().min(1),
+      location: z.string().default("Remote"),
+      salary_range: z.string().nullable().optional(),
+      url: z.string().url().nullable().optional(),
+      description: z.string().nullable().optional(),
+      requirements: z.array(z.string()).default([]),
+      posted_date: z.string().nullable().optional(),
+      match_score: z.number().min(0).max(100).default(0),
+      keyword_matches: z.array(z.string()).default([]),
+      missing_keywords: z.array(z.string()).default([]),
+      score_reasoning: z.string().nullable().optional(),
+    });
+
+    const IngestSchema = z.object({
+      runId: z.string().uuid().nullable().optional(),
+      jobs: z.array(IngestJobSchema).min(1, "At least one job required"),
+    });
+
+    const parsed = IngestSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation failed", details: parsed.error.flatten() }, { status: 400 });
     }
+
+    const { runId, jobs } = parsed.data;
 
     const inserted: string[] = [];
     const skipped: string[] = [];
@@ -22,7 +51,7 @@ export async function POST(request: Request) {
       try {
         // Check for existing job with same source + external_id
         if (job.external_id) {
-          const { data: existing } = await supabase
+          const { data: existing } = await supabaseAdmin
             .from("discovered_jobs")
             .select("id")
             .eq("source", job.source)
@@ -35,7 +64,7 @@ export async function POST(request: Request) {
           }
         }
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
           .from("discovered_jobs")
           .insert({
             run_id: runId || null,
@@ -68,7 +97,7 @@ export async function POST(request: Request) {
 
     // Update run counters if runId provided
     if (runId) {
-      await supabase
+      await supabaseAdmin
         .from("autopilot_runs")
         .update({
           jobs_discovered: inserted.length,

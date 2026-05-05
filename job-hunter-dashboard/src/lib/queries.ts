@@ -379,6 +379,9 @@ export async function promoteToMainPipeline(discoveredJobId: string) {
     .single();
   if (fetchError || !discovered) throw fetchError || new Error("Job not found");
 
+  // Idempotency guard: skip if already promoted
+  if (discovered.pipeline_job_id) return;
+
   // Create a job in the main pipeline
   const { data: pipelineJob, error: insertError } = await supabase
     .from("jobs")
