@@ -1,0 +1,255 @@
+{
+  "jobs": [
+    {
+      "source": "indeed",
+      "external_id": "JOB_376",
+      "title": "Front End Developer",
+      "company": "LMI",
+      "location": "Remote",
+      "salary_range": "$101,000 - $174,000 a year",
+      "url": "https://to.indeed.com/aawvdvwfqx6n",
+      "posted_date": "2026-04-15",
+      "match_score": 91,
+      "keyword_matches": [
+        "react",
+        "typescript",
+        "javascript",
+        "redux",
+        "graphql",
+        "rest",
+        "css",
+        "git",
+        "ci/cd"
+      ],
+      "missing_keywords": [
+        "next.js",
+        "tailwind",
+        "jest",
+        "node"
+      ],
+      "score_reasoning": "Role:25/30, Keywords:36/40 (9/14), Remote:15/15, Salary:15/15. Gov healthcare client, strong React/TS/Redux/GraphQL match. Security clearance eligibility required.",
+      "description": "Front-end developer for gov healthcare client. React/Vue/Angular, Redux, GraphQL, REST, CI/CD, accessibility/WCAG focus. 5+ years required."
+    },
+    {
+      "source": "indeed",
+      "external_id": "JOB_409",
+      "title": "Staff Frontend Engineer",
+      "company": "Vetcove",
+      "location": "Remote",
+      "salary_range": "$170,000 - $230,000 a year",
+      "url": "https://to.indeed.com/aarvd4pk4pbb",
+      "posted_date": "2026-04-08",
+      "match_score": 84,
+      "keyword_matches": [
+        "react",
+        "typescript",
+        "javascript",
+        "graphql",
+        "rest",
+        "git"
+      ],
+      "missing_keywords": [
+        "next.js",
+        "redux",
+        "css",
+        "tailwind",
+        "ci/cd",
+        "jest",
+        "node"
+      ],
+      "score_reasoning": "Role:30/30, Keywords:24/40 (6/14), Remote:15/15, Salary:15/15. Y Combinator backed veterinary platform. React + React Native. 8+ yrs required - strong fit. $170-230k.",
+      "description": "Lead frontend architecture for veterinary SaaS. React/React Native, TypeScript, design systems. 8+ years, mentoring role."
+    },
+    {
+      "source": "indeed",
+      "external_id": "JOB_372",
+      "title": "Staff Software Engineer - AI Website Builder",
+      "company": "Luxury Presence",
+      "location": "Remote",
+      "salary_range": "$200,000 - $250,000 a year",
+      "url": "https://to.indeed.com/aatprzjtkxdx",
+      "posted_date": "2026-04-22",
+      "match_score": 84,
+      "keyword_matches": [
+        "react",
+        "typescript",
+        "javascript",
+        "graphql",
+        "tailwind",
+        "node"
+      ],
+      "missing_keywords": [
+        "next.js",
+        "redux",
+        "rest",
+        "css",
+        "git",
+        "ci/cd",
+        "jest"
+      ],
+      "score_reasoning": "Role:30/30, Keywords:24/40 (6/14), Remote:15/15, Salary:15/15. Series C real estate AI platform. React/Tailwind/GraphQL. Leans backend but strong frontend component. $200-250k.",
+      "description": "Build AI-first website builder. React, Tailwind, Apollo, Node.js, TypeScript, GraphQL, AWS. 5+ years full-stack."
+    },
+    {
+      "source": "indeed",
+      "external_id": "JOB_380",
+      "title": "Front-End Application Developer",
+      "company": "Valiant Solutions, LLC",
+      "location": "Remote",
+      "salary_range": "$115,000 - $132,000 a year",
+      "url": "https://to.indeed.com/aa4g77nk8j4g",
+      "posted_date": "2026-04-15",
+      "match_score": 71,
+      "keyword_matches": [
+        "react",
+        "typescript",
+        "git",
+        "node"
+      ],
+      "missing_keywords": [
+        "javascript",
+        "next.js",
+        "redux",
+        "graphql",
+        "rest",
+        "css",
+        "tailwind",
+        "ci/cd",
+        "jest"
+      ],
+      "score_reasoning": "Role:25/30, Keywords:16/40 (4/14), Remote:15/15, Salary:15/15. Federal gov environmental client. React/TypeScript/Node. Agile. $115-132k.",
+      "description": "Front-end focused full stack dev for federal environmental agency. TypeScript, React, Node.js, AWS, PostgreSQL."
+    },
+    {
+      "source": "indeed",
+      "external_id": "JOB_383",
+      "title": "Front End Engineer",
+      "company": "Mutual of Omaha",
+      "location": "Remote",
+      "salary_range": "$95,000 - $130,000 a year",
+      "url": "https://to.indeed.com/aak8y6b4dst9",
+      "posted_date": "2026-04-18",
+      "match_score": 63,
+      "keyword_matches": [
+        "javascript",
+        "css"
+      ],
+      "missing_keywords": [
+        "react",
+        "typescript",
+        "next.js",
+        "redux",
+        "graphql",
+        "rest",
+        "tailwind",
+        "git",
+        "ci/cd",
+        "jest",
+        "node"
+      ],
+      "score_reasoning": "Role:25/30, Keywords:8/40 (2/14), Remote:15/15, Salary:15/15. Marketing site work. HTML/CSS/JS + PHP. Lower keyword match but solid frontend role. Closes May 8!",
+      "description": "Build marketing web experiences for MutualofOmaha.com. HTML, CSS, JavaScript, PHP. Performance + conversion focus."
+    },
+    {
+      "source": "indeed",
+      "external_id": "JOB_370",
+      "title": "Senior Full Stack Engineer",
+      "company": "fairgreen",
+      "location": "Remote",
+      "salary_range": "$96,365 - $116,053 a year",
+      "url": "https://to.indeed.com/aa6nmwlxwnkr",
+      "posted_date": "2026-05-03",
+      "match_score": 60,
+      "keyword_matches": [],
+      "missing_keywords": [
+        "react",
+        "typescript",
+        "javascript",
+        "next.js",
+        "redux",
+        "graphql",
+        "rest",
+        "css",
+        "tailwind",
+        "git",
+        "ci/cd",
+        "jest",
+        "node"
+      ],
+      "score_reasoning": "Role:30/30, Keywords:0/40, Remote:15/15, Salary:15/15. Title-only score - needs detail fetch."
+    },
+    {
+      "source": "indeed",
+      "external_id": "JOB_367",
+      "title": "Software Engineer, Full-Stack",
+      "company": "Train With Ellie",
+      "location": "Remote",
+      "salary_range": "$160,000 - $190,000 a year",
+      "url": "https://to.indeed.com/aajnpck8crhz",
+      "posted_date": "2026-03-18",
+      "match_score": 55,
+      "keyword_matches": [],
+      "missing_keywords": [
+        "react",
+        "typescript",
+        "javascript"
+      ],
+      "score_reasoning": "Role:25/30, Keywords:0/40, Remote:15/15, Salary:15/15. High comp $160-190k. Title-only score."
+    },
+    {
+      "source": "indeed",
+      "external_id": "JOB_368",
+      "title": "Software Engineer",
+      "company": "Check",
+      "location": "Remote",
+      "salary_range": "$141,500 - $155,650 a year",
+      "url": "https://to.indeed.com/aanbn449lmrh",
+      "posted_date": "2026-05-06",
+      "match_score": 55,
+      "keyword_matches": [],
+      "missing_keywords": [
+        "react",
+        "typescript",
+        "javascript"
+      ],
+      "score_reasoning": "Role:25/30, Keywords:0/40, Remote:15/15, Salary:15/15. Posted today. $141-155k. Title-only score."
+    },
+    {
+      "source": "indeed",
+      "external_id": "JOB_365",
+      "title": "Software Engineer",
+      "company": "Priority Technology Holdings, LLC",
+      "location": "Remote",
+      "salary_range": "$92,000 - $135,000 a year",
+      "url": "https://to.indeed.com/aaysmqbntmt2",
+      "posted_date": "2026-04-06",
+      "match_score": 55,
+      "keyword_matches": [],
+      "missing_keywords": [
+        "react",
+        "typescript",
+        "javascript"
+      ],
+      "score_reasoning": "Role:25/30, Keywords:0/40, Remote:15/15, Salary:15/15. Title-only score."
+    },
+    {
+      "source": "indeed",
+      "external_id": "JOB_377",
+      "title": "Front-End Web Developer (WordPress & React)",
+      "company": "SEVEN MOUNTAINS MEDIA, LLC",
+      "location": "Remote",
+      "salary_range": "N/A",
+      "url": "https://to.indeed.com/aa47kptl9lsm",
+      "posted_date": "2026-04-06",
+      "match_score": 48,
+      "keyword_matches": [
+        "react"
+      ],
+      "missing_keywords": [
+        "typescript",
+        "javascript"
+      ],
+      "score_reasoning": "Role:20/30, Keywords:8/40 (react in title), Remote:15/15, Salary:5/15. WordPress focus may not be ideal."
+    }
+  ]
+}
